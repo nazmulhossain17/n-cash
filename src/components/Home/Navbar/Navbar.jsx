@@ -1,7 +1,41 @@
 import { Button } from '@/components/ui/button'
+import { deleteUserFailure, deleteUserSuccess, signOutUserStart } from '@/redux/user/userSlice';
+import { useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom'
 
 const Navbar = () => {
+  const dispatch = useDispatch();
+  const handleLogOut = async() => {
+    try {
+      dispatch(signOutUserStart());
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/auth/logout`,
+        {
+          method: "GET",
+          credentials: "include", // Include credentials (cookies) in the request
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error(`HTTP error! Status: ${res.status}`);
+      }
+
+      const data = await res.json();
+
+      if (data.success === false) {
+        dispatch(deleteUserFailure(data.message));
+        return;
+      }
+
+      // Clear the access token on the client side (assuming you're using cookies)
+      // document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+
+      dispatch(deleteUserSuccess(data));
+      document.location.reload()
+    } catch (error) {
+      dispatch(deleteUserFailure(error.message));
+    }
+  }
   return (
     <>
      <nav className="bg-gray-800">
@@ -17,6 +51,11 @@ const Navbar = () => {
       <div className="flex">
         <Link to="/login"><Button href="#" className="px-3 py-2 text-gray-300 bg-green-700 hover:bg-gray-700 hover:text-white">Login</Button></Link>
         <Link to="/register" className="px-3 py-2 text-gray-300 hover:bg-gray-700 hover:text-white">Sign Up</Link>
+        <button
+         onClick={handleLogOut}
+        className="block px-4 py-2 text-sm text-gray-700 hover:text-red-600">
+              Log out
+        </button>
       </div>
     </div>
   </div>

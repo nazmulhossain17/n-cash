@@ -4,9 +4,53 @@ import { Input } from "@/components/ui/input"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
+import { useState } from "react"
+import { useDispatch } from "react-redux"
+import { signInFailure, signInStart, signInSuccess } from "@/redux/user/userSlice"
+import toast from "react-hot-toast"
 
 function Login() {
+  const [mobile, setMobile] = useState("");
+  const [pin, setPin] = useState("");
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      dispatch(signInStart());
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/auth/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ mobile, pin }),
+          credentials: "include",
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error(`HTTP error! Status: ${res.status}`);
+      }
+
+      const data = await res.json();
+      console.log(data);
+
+      if (data.success === false) {
+        dispatch(signInFailure(data.message));
+        return;
+      }
+      dispatch(signInSuccess(data));
+      toast.success("Login successful");
+      navigate("/");
+    } catch (error) {
+      console.error("Fetch error:", error.message);
+      dispatch(signInFailure(error.message));
+    }
+  }
+
   return (
     <>
     <div className="md:hidden">
@@ -59,12 +103,13 @@ function Login() {
                 helped me deliver stunning designs to my clients faster than
                 ever before.&rdquo;
               </p>
-              <footer className="text-sm">Sofia Davis</footer>
+              <footer className="text-sm">Syed Nazmul Hossain</footer>
             </blockquote>
           </div>
         </div>
         <div className="lg:p-8">
           <div className="flex flex-col justify-center w-full mx-auto space-y-6 lg:max-w-lg">
+          <form onSubmit={handleSubmit}>
               <Card>
                 <CardHeader className="space-y-1">
                   <CardTitle className="text-2xl text-center">
@@ -76,12 +121,12 @@ function Login() {
                 </CardHeader>
                 <CardContent className="grid gap-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="email">Number</Label>
-                    <Input id="email" type="email" placeholder="" />
+                    <Label htmlFor="number">Number</Label>
+                    <Input onChange={(e) => setMobile(e.target.value)} id="mobile" type="number" placeholder="Enter your number" />
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="password">Pin</Label>
-                    <Input id="password" type="password" />
+                    <Input onChange={(e) => setPin(e.target.value)} id="pin" type="password" placeholder="Enter your pin" />
                   </div>
                   <div className="flex items-center space-x-2">
                     <Checkbox id="terms" />
@@ -94,7 +139,7 @@ function Login() {
                   </div>
                 </CardContent>
                 <CardFooter className="flex flex-col">
-                  <Button className="w-full">Login</Button>
+                  <Button type="submit" className="w-full">Login</Button>
                   <p className="mt-2 text-xs text-center text-gray-700">
                     {" "}
                     Don't have an account?{" "}
@@ -104,6 +149,7 @@ function Login() {
                   </p>
                 </CardFooter>
               </Card>
+              </form>
             
 
             <p className="px-8 text-sm text-center text-muted-foreground">
