@@ -16,10 +16,14 @@ const Register = () => {
   const navigate = useNavigate();
 
   const handleRegister = async (data) => {
-    console.log(data);
-    try{
+
+    console.log("Data before sending:", data);
+    try {
+      // Add accountType to the data object
+     
+  
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/auth/register`,
+        `${import.meta.env.VITE_API_URL}/api/auth/create-user`,
         data,
         {
           headers: {
@@ -27,8 +31,8 @@ const Register = () => {
           },
         }
       );
-
-      if (!response.data.user) {
+  
+      if (response.data.user) {
         console.log("Registration successful");
         toast.success("Account created successful");
         setLoading(false);
@@ -42,7 +46,7 @@ const Register = () => {
     } finally {
       setLoading(false); // Set loading to false when the request is complete
     }
-  }
+  };
   return (
     <>
    
@@ -103,7 +107,7 @@ const Register = () => {
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="mobile">Mobile</Label>
-                    <Input {...register("number")} id="mobile" type="number" />
+                    <Input {...register("mobile")} id="mobile" type="number" />
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="email">Email</Label>
@@ -113,6 +117,17 @@ const Register = () => {
                     <Label htmlFor="text">Nid</Label>
                     <Input {...register("nid")} id="nid" type="text" />
                   </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="text">Pin</Label>
+                    <Input {...register("pin")} id="pin" type="text" />
+                  </div>
+                  <div className="grid gap-2">
+  <Label htmlFor="accountType">Account Type</Label>
+  <select {...register("accountType")} id="accountType">
+    <option value="USER">User</option>
+    <option value="AGENT">Agent</option>
+  </select>
+</div>
                   <div className="flex items-center space-x-2">
                     <Checkbox id="terms" />
                     <label
@@ -124,9 +139,16 @@ const Register = () => {
                   </div>
                 </CardContent>
                 <CardFooter className="flex flex-col">
-                  <Button className="w-full">
-                  {loading ? "Creating Account..." : "Register"}
-                  </Button>
+                <Button className="w-full" disabled={loading}>
+                  {loading ? (
+                    <div className="flex items-center justify-center">
+                      <span className="mr-2 animate-spin">&#9696;</span> Creating Account...
+                    </div>
+                  ) : (
+                    "Register"
+                  )}
+                </Button>
+
                   <p className="mt-2 text-xs text-center text-gray-700">
                     {" "}
                     Don't have an account?{" "}
